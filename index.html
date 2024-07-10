@@ -1,96 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script defer src="/_vercel/insights/script.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
-    />
-    <title>Vercel HTML Starter</title>
-    <meta
-      name="description"
-      content="High-performance HTML based website template."
-    />
-  </head>
-  <body>
-    <h1>Vercel HTML Starter</h1>
-    <p>
-      This template is a simple, but powerful single
-      <code>index.html</code> file deployed to
-      <a href="https://vercel.com">Vercel</a>. When your site is deployed, all
-      static assets (like HTML, JavaScript, CSS, images, and more) are deployed
-      globally to every
-      <a href="https://vercel.com/docs/concepts/edge-network/overview"
-        >Vercel Edge Network</a
-      >
-      region.
-    </p>
-    <h2>Simple, privacy-friendly analytics</h2>
-    <p>
-      Want to understand your visitor traffic? Vercel Analytics gives you
-      first-party, privacy-friendly traffic analytics for your HTML site. This
-      template is already configured using the following script:
-    </p>
-    <pre><code>&lt;script defer src="/_vercel/insights/script.js"&gt;&lt;/script&gt;</code></pre>
-    <p>
-      Learn more about
-      <a href="https://vercel.com/analytics">Vercel Analytics</a>.
-    </p>
-    <h2>Integrated with git</h2>
-    <p>
-      Deploying updates to your site is as simple as
-      <code>git push</code> thanks to Vercel's advanced
-      <a href="https://vercel.com/docs/concepts/git">Git Integration</a>.
-      Support for GitHub, GitLab, Bitbucket is zero-configuration, and with the
-      flexible Vercel CLI and API, you can integrate with any tool possible.
-    </p>
-    <p>
-      Learn more about
-      <a href="https://vercel.com/docs/concepts/git">Git Integration</a>.
-    </p>
-    <h2>Fast <code>gzip</code> compression</h2>
-    <p>
-      To help ensure the smallest possible file sizes for your static assets,
-      the Vercel Edge Network compresses files by default using
-      <code>gzip</code>. You can also optionally use
-      <code>brotli</code> compressesion if you prefer.
-    </p>
-    <p>
-      Learn more about
-      <a href="https://vercel.com/docs/concepts/edge-network/compression"
-        >compression</a
-      >.
-    </p>
-    <h2>Advanced routing configuration</h2>
-    <p>
-      Vercel gives you a variety of ways to configure the routing of your
-      website. For example, adding redirects, rewrites, or headers to your page.
-      While you can use <code>vercel.json</code> to define these through JSON,
-      you can also express your routing configuration as code using
-      <a href="https://vercel.com/docs/concepts/functions/edge-middleware"
-        >Vercel Edge Middleware</a
-      >.
-    </p>
-    <p>
-      Middleware runs before the
-      <a href="https://vercel.com/docs/concepts/edge-network/caching"
-        >Vercel Edge Network Cache</a
-      >, so you can configure routing exactly as your application needs. For
-      example, this template uses <code>middleware.js</code> defined in the root
-      of the repository to add additional security headers to the site:
-    </p>
-    <pre><code>referrer-policy: origin-when-cross-origin
-strict-transport-security: max-age=31536000; includeSubDomains; preload
-x-content-type-options: nosniff
-x-dns-prefetch-control: on
-x-frame-options: DENY</code></pre>
-    <p>
-      Learn more about
-      <a href="https://vercel.com/docs/concepts/functions/edge-middleware"
-        >Vercel Edge Middleware</a
-      >.
-    </p>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Previous Logs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      text-align: center;
+    }
+    .header h1 {
+      font-family: 'Times New Roman', Times, serif;
+      color: #003366;
+      margin-bottom: 20px;
+    }
+    form label,
+    form input,
+    form button {
+      display: block;
+      margin: 10px auto;
+      font-size: 1.2em;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #003366;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #001a33;
+    }
+    .logs {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .logs p {
+      font-size: 1em;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>View Previous Logs</h1>
+    </div>
+    <form id="logForm">
+      <label for="date">Select Date:</label>
+      <input type="date" id="date" name="date" required><br>
+      <button type="button" class="btn" onclick="viewLogs()">View Logs</button>
+    </form>
+    <div id="logs" class="logs"></div>
+  </div>
+
+  <script>
+    function viewLogs() {
+      const date = document.getElementById('date').value;
+
+      if (!date) {
+        alert('Please select a date');
+        return;
+      }
+
+      const user = firebase.auth().currentUser;
+      if (user) {
+        const db = firebase.firestore();
+        db.collection('users').doc(user.uid).collection('health_logs').doc(date).get().then((doc) => {
+          if (doc.exists) {
+            const data = doc.data();
+            document.getElementById('logs').innerHTML = `
+              <p>Date: ${data.date}</p>
+              <p>Heart Rate: ${data.heartRate}</p>
+              <p>Steps Taken: ${data.stepsTaken}</p>
+              <p>Sleep Hours: ${data.sleepHours}</p>
+            `;
+          } else {
+            document.getElementById('logs').innerHTML = 'No logs found for the selected date';
+          }
+        }).catch((error) => {
+          console.error('Error getting document: ', error);
+        });
+      } else {
+        alert('No user signed in');
+      }
+    }
+
+    // Initialize Firebase Authentication and check for user
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        // Redirect to login page if no user is signed in
+        window.location.href = 'https://html-starter-six-livid.vercel.app/';
+      }
+    });
+  </script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDf4yaXsG9ShvlAX4IVdGIPqPAypttqlPI",
+      authDomain: "pulsepals-fa684.firebaseapp.com",
+      projectId: "pulsepals-fa684",
+      storageBucket: "pulsepals-fa684.appspot.com",
+      messagingSenderId: "332323808828",
+      appId: "1:332323808828:web:926868c9d76ab22a8ac539",
+      measurementId: "G-ZLJM10C0BD" 
+    };
+
+    firebase.initializeApp(firebaseConfig);
+  </script>
+</body>
 </html>
