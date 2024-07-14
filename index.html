@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enter Daily Log</title>
+  <title>View Logs</title>
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <style>
@@ -52,25 +52,23 @@
       font-size: 1.2em;
       color: green;
     }
+    .log-entry {
+      margin-top: 20px;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>Enter Daily Log</h1>
+      <h1>View Logs</h1>
     </div>
-    <form id="logForm">
-      <label for="date">Date:</label>
-      <input type="date" id="date" name="date" required><br>
-      <label for="heartRate">Heart Rate:</label>
-      <input type="number" id="heartRate" name="heartRate" required><br>
-      <label for="stepsTaken">Steps Taken:</label>
-      <input type="number" id="stepsTaken" name="stepsTaken" required><br>
-      <label for="sleepHours">Sleep Hours:</label>
-      <input type="number" id="sleepHours" name="sleepHours" step="0.1" required><br>
-      <button type="button" class="btn" onclick="saveLog()">Save Log</button>
+    <form id="viewLogForm">
+      <label for="logDate">Select Date:</label>
+      <input type="date" id="logDate" name="logDate" required><br>
+      <button type="button" class="btn" onclick="viewLog()">View Log</button>
     </form>
-    <div id="message" class="message"></div>
+    <div id="logEntry" class="log-entry"></div>
   </div>
 
   <!-- Firebase SDK -->
@@ -78,7 +76,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js"></script>
   <script>
-    var firebaseConfig = {
+    const firebaseConfig = {
       apiKey: "AIzaSyDf4yaXsG9ShvlAX4IVdGIPqPAypttqlPI",
       authDomain: "pulsepals-fa684.firebaseapp.com",
       projectId: "pulsepals-fa684",
@@ -91,41 +89,42 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
 
-    function saveLog() {
-      var date = document.getElementById('date').value;
-      var heartRate = document.getElementById('heartRate').value;
-      var stepsTaken = document.getElementById('stepsTaken').value;
-      var sleepHours = document.getElementById('sleepHours').value;
-
-      if (!date || !heartRate || !stepsTaken || !sleepHours) {
-        alert('Please fill in all fields');
+    function viewLog() {
+      const logDate = document.getElementById('logDate').value;
+      if (!logDate) {
+        alert('Please select a date');
         return;
       }
 
-      // Save log data to Firestore
-      var user = firebase.auth().currentUser;
+      // Retrieve log data from Firestore
+      const user = firebase.auth().currentUser;
       if (user) {
-        // User is signed in, save the log
-      firebase.firestore().collection('users').doc(user.uid).collection('health_logs').add({
-        date: date,
-        heartRate: heartRate,
-        stepsTaken: stepsTaken,
-        sleepHours: sleepHours
-      })
-      .then((docRef) => {
-        console.log("Document written with ID: ", docRef.id);
-        alert('Log saved successfully');
-      })
-      .catch((error) => {
-        console.error("Error adding document: ", error);
-        alert('Error saving log');
-      });
-    } else {
-      // No user is signed in
-      alert('Please log in to save a log');
+        const db = firebase.firestore();
+        const logEntryDiv = document.getElementById('logEntry');
+        logEntryDiv.innerHTML = ''; // Clear previous log data
+
+        db.collection('users').doc(user.uid).collection('health_logs').doc(logDate).get()
+          .then((doc) => {
+            if (doc.exists) {
+              const data = doc.data();
+              logEntryDiv.innerHTML = `
+                <h3>Log for ${data.date}</h3>
+                <p><strong>Heart Rate:</strong> ${data.heartRate}</p>
+                <p><strong>Steps Taken:</strong> ${data.stepsTaken}</p>
+                <p><strong>Sleep Hours:</strong> ${data.sleepHours}</p>
+              `;
+            } else {
+              logEntryDiv.innerText = 'No log found for this date';
+            }
+          }).catch((error) => {
+            console.error('Error getting document: ', error);
+            logEntryDiv.innerText = 'Error retrieving log';
+          });
+      } else {
+        alert('No user signed in');
+      }
     }
-  }
-  
+
     // Initialize Firebase Authentication and check for user
     firebase.auth().onAuthStateChanged(function(user) {
       if (!user) {
