@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Previous Logs</title>
+  <title>Enter Daily Log</title>
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <style>
@@ -47,76 +47,38 @@
     .btn:hover {
       background-color: #001a33;
     }
-    .logs {
+    .message {
       margin-top: 20px;
-      text-align: left;
-    }
-    .logs p {
-      font-size: 1em;
-      color: #333;
+      font-size: 1.2em;
+      color: green;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>View Previous Logs</h1>
+      <h1>Enter Daily Log</h1>
     </div>
     <form id="logForm">
-      <label for="date">Select Date:</label>
+      <label for="date">Date:</label>
       <input type="date" id="date" name="date" required><br>
-      <button type="button" class="btn" onclick="viewLogs()">View Logs</button>
+      <label for="heartRate">Heart Rate:</label>
+      <input type="number" id="heartRate" name="heartRate" required><br>
+      <label for="stepsTaken">Steps Taken:</label>
+      <input type="number" id="stepsTaken" name="stepsTaken" required><br>
+      <label for="sleepHours">Sleep Hours:</label>
+      <input type="number" id="sleepHours" name="sleepHours" step="0.1" required><br>
+      <button type="button" class="btn" onclick="saveLog()">Save Log</button>
     </form>
-    <div id="logs" class="logs"></div>
+    <div id="message" class="message"></div>
   </div>
-
-  <script>
-    function viewLogs() {
-      const date = document.getElementById('date').value;
-
-      if (!date) {
-        alert('Please select a date');
-        return;
-      }
-
-      const user = firebase.auth().currentUser;
-      if (user) {
-        const db = firebase.firestore();
-        db.collection('users').doc(user.uid).collection('health_logs').doc(date).get().then((doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            document.getElementById('logs').innerHTML = `
-              <p>Date: ${data.date}</p>
-              <p>Heart Rate: ${data.heartRate}</p>
-              <p>Steps Taken: ${data.stepsTaken}</p>
-              <p>Sleep Hours: ${data.sleepHours}</p>
-            `;
-          } else {
-            document.getElementById('logs').innerHTML = 'No logs found for the selected date';
-          }
-        }).catch((error) => {
-          console.error('Error getting document: ', error);
-        });
-      } else {
-        alert('No user signed in');
-      }
-    }
-
-    // Initialize Firebase Authentication and check for user
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (!user) {
-        // Redirect to login page if no user is signed in
-        window.location.href = 'https://html-starter-six-livid.vercel.app/';
-      }
-    });
-  </script>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js"></script>
   <script>
-    const firebaseConfig = {
+    var firebaseConfig = {
       apiKey: "AIzaSyDf4yaXsG9ShvlAX4IVdGIPqPAypttqlPI",
       authDomain: "pulsepals-fa684.firebaseapp.com",
       projectId: "pulsepals-fa684",
@@ -126,7 +88,51 @@
       measurementId: "G-ZLJM10C0BD" 
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+
+    function saveLog() {
+      var date = document.getElementById('date').value;
+      var heartRate = document.getElementById('heartRate').value;
+      var stepsTaken = document.getElementById('stepsTaken').value;
+      var sleepHours = document.getElementById('sleepHours').value;
+
+      if (!date || !heartRate || !stepsTaken || !sleepHours) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      // Save log data to Firestore
+      var user = firebase.auth().currentUser;
+      if (user) {
+        // User is signed in, save the log
+      firebase.firestore().collection('users').doc(user.uid).collection('health_logs').add({
+        date: date,
+        heartRate: heartRate,
+        stepsTaken: stepsTaken,
+        sleepHours: sleepHours
+      })
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+        alert('Log saved successfully');
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+        alert('Error saving log');
+      });
+    } else {
+      // No user is signed in
+      alert('Please log in to save a log');
+    }
+  }
+  
+    // Initialize Firebase Authentication and check for user
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        // Redirect to login page if no user is signed in
+        window.location.href = 'https://html-starter-six-livid.vercel.app/';
+      }
+    });
   </script>
 </body>
 </html>
