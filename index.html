@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Logs</title>
+  <title>PulsePals - Your Health Data</title>
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <style>
@@ -14,123 +14,151 @@
       background-color: #ffffff;
     }
     .container {
-      max-width: 600px;
-      margin: 50px auto;
+      max-width: 1200px;
+      margin: 20px auto;
       padding: 20px;
       background-color: #fff;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       border-radius: 5px;
+    }
+    .header {
       text-align: center;
+      margin-bottom: 20px;
+    }
+    .logo {
+      width: 150px;
+      margin-bottom: 10px;
     }
     .header h1 {
       font-family: 'Times New Roman', Times, serif;
       color: #003366;
-      margin-bottom: 20px;
     }
-    form label,
-    form input,
-    form button {
-      display: block;
-      margin: 10px auto;
+    .header p {
       font-size: 1.2em;
+      color: #666;
+      font-family: 'Great Vibes', cursive;
     }
-    .btn {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: #003366;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      border: none;
-      transition: background-color 0.3s ease;
+    .content {
+      text-align: center;
+      margin-bottom: 30px;
     }
-    .btn:hover {
-      background-color: #001a33;
-    }
-    .message {
-      margin-top: 20px;
-      font-size: 1.2em;
-      color: green;
-    }
-    .log-entry {
-      margin-top: 20px;
+    .dropdown-container {
+      margin: 20px 0;
       text-align: left;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      background-color: #cfe2ff;
+    }
+    .dropdown-container h2 {
+      color: #003366;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+    .dropdown-container p {
+      color: #333;
+    }
+    .data-list {
+      margin-top: 10px;
+      display: none;
+    }
+    .data-list p {
+      color: #333;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
-      <h1>View Logs</h1>
+      &#10084; <!-- Heart Icon -->
+      <h1>PulsePals</h1>
+      <p>Your Health Companion</p>
     </div>
-    <form id="viewLogForm">
-      <label for="logDate">Select Date:</label>
-      <input type="date" id="logDate" name="logDate" required><br>
-      <button type="button" class="btn" onclick="viewLog()">View Log</button>
-    </form>
-    <div id="logEntry" class="log-entry"></div>
+    <div class="content">
+      <div class="dropdown-container" id="heartRateContainer">
+        <h2>Heart Rate</h2>
+        <div class="data-list" id="heartRateData">
+          <!-- Heart Rate data will be populated here -->
+        </div>
+      </div>
+      <div class="dropdown-container">
+        <h2>Steps Taken</h2>
+        <div class="data-list" id="stepsTakenData">
+          <!-- Steps Taken data will be populated here -->
+        </div>
+      </div>
+      <div class="dropdown-container">
+        <h2>Mood Tracker</h2>
+        <div class="data-list" id="moodTrackerData">
+          <!-- Mood Tracker data will be populated here -->
+        </div>
+      </div>
+      <div class="dropdown-container">
+        <h2>Sleep Pattern Tracker</h2>
+        <div class="data-list" id="sleepPatternData">
+          <!-- Sleep Pattern data will be populated here -->
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js"></script>
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyDf4yaXsG9ShvlAX4IVdGIPqPAypttqlPI",
-      authDomain: "pulsepals-fa684.firebaseapp.com",
-      projectId: "pulsepals-fa684",
-      storageBucket: "pulsepals-fa684.appspot.com",
-      messagingSenderId: "332323808828",
-      appId: "1:332323808828:web:926868c9d76ab22a8ac539",
-      measurementId: "G-ZLJM10C0BD" 
+      apiKey: "AIzaSyAo6ziHFthGBRE3cZd8EC-Ukds8ztyMzFQ",
+      authDomain: "pulsepals-c211c.firebaseapp.com",
+      projectId: "pulsepals-c211c",
+      storageBucket: "pulsepals-c211c.appspot.com",
+      messagingSenderId: "475129408953",
+      appId: "1:475129408953:web:1913c2d4083c1452079a68",
+      measurementId: "G-YPSX5VFFG5"
     };
 
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    function viewLog() {
-      const logDate = document.getElementById('logDate').value;
-      if (!logDate) {
-        alert('Please select a date');
-        return;
-      }
+    // Function to get and display heart rate data
+    async function getHeartRateData(userId) {
+    const heartRateRef = collection(db, 'users', userId, 'heartRate');
+    const heartRateQuery = query(heartRateRef);
+    const heartRateSnapshot = await getDocs(heartRateQuery);
 
-      // Retrieve log data from Firestore
-      const user = firebase.auth().currentUser;
-      if (user) {
-        const db = firebase.firestore();
-        const logEntryDiv = document.getElementById('logEntry');
-        logEntryDiv.innerHTML = ''; // Clear previous log data
+    let heartRateData = '';
+    heartRateSnapshot.forEach((doc) => {
+        const timestamp = doc.id;
+        const value = doc.data().value;
+        heartRateData += `<p>${timestamp}: ${value} BPM</p>`;
+    });
 
-        db.collection('users').doc(user.uid).collection('health_logs').doc(logDate).get()
-          .then((doc) => {
-            if (doc.exists) {
-              const data = doc.data();
-              logEntryDiv.innerHTML = `
-                <h3>Log for ${data.date}</h3>
-                <p><strong>Heart Rate:</strong> ${data.heartRate}</p>
-                <p><strong>Steps Taken:</strong> ${data.stepsTaken}</p>
-                <p><strong>Sleep Hours:</strong> ${data.sleepHours}</p>
-              `;
-            } else {
-              logEntryDiv.innerText = 'No log found for this date';
-            }
-          }).catch((error) => {
-            console.error('Error getting document: ', error);
-            logEntryDiv.innerText = 'Error retrieving log';
-          });
-      } else {
-        alert('No user signed in');
-      }
+    document.getElementById('heartRateData').innerHTML = heartRateData;
     }
 
-    // Initialize Firebase Authentication and check for user
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (!user) {
-        // Redirect to login page if no user is signed in
-        window.location.href = 'https://html-starter-six-livid.vercel.app/';
-      }
+    // Listen for auth state changes
+    onAuthStateChanged(auth, (user) => {
+        // Event listener for the Heart Rate dropdown
+        document.getElementById('heartRateContainer').addEventListener('click', function() {
+            if (user) {
+            const userId = user.uid;
+            const dataList = document.getElementById('heartRateData');
+            if (dataList.style.display === 'none' || dataList.style.display === '') {
+                getHeartRateData(userId);
+                dataList.style.display = 'block';
+            } else {
+                dataList.style.display = 'none';
+            }
+            } else {
+            // User is not logged in, redirect to homepage
+            window.location.href = 'https://html-starter-six-livid.vercel.app/';
+            }
+        });
     });
   </script>
 </body>
