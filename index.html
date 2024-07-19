@@ -143,21 +143,27 @@
 
     // Event listener for the Heart Rate dropdown
     document.getElementById('heartRateContainer').addEventListener('click', function() {
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          const userId = user.uid;
-          const dataList = document.getElementById('heartRateData');
-          if (dataList.style.display === 'none' || dataList.style.display === '') {
-            getHeartRateData(userId);
-            dataList.style.display = 'block';
-          } else {
-            dataList.style.display = 'none';
-          }
+      const user = auth.currentUser;
+      if (user) {
+        const userId = user.uid;
+        const dataList = document.getElementById('heartRateData');
+        if (dataList.style.display === 'none' || dataList.style.display === '') {
+          getHeartRateData(userId);
+          dataList.style.display = 'block';
         } else {
-          // User is not logged in, redirect to homepage
-          window.location.href = 'https://html-starter-six-livid.vercel.app/';
+          dataList.style.display = 'none';
         }
-      });
+      } else {
+        // User is not logged in, redirect to homepage
+        window.location.href = 'https://html-starter-six-livid.vercel.app/';
+      }
+    });
+
+    // Check authentication state on page load
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'https://html-starter-six-livid.vercel.app/';
+      }
     });
   </script>
 </body>
