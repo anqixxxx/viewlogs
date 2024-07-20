@@ -127,42 +127,44 @@
 
     // Function to get and display heart rate data
     async function getHeartRateData(userId) {
-    const heartRateRef = collection(db, 'users', userId, 'heartRate');
-    const heartRateQuery = query(heartRateRef);
-    const heartRateSnapshot = await getDocs(heartRateQuery);
+      const heartRateRef = collection(db, 'users', userId, 'heartRate');
+      const heartRateQuery = query(heartRateRef);
+      const heartRateSnapshot = await getDocs(heartRateQuery);
 
-    let heartRateData = '';
-    heartRateSnapshot.forEach((doc) => {
-        const timestamp = doc.id;
-        const value = doc.data().value;
-        heartRateData += `<p>${timestamp}: ${value} BPM</p>`;
-    });
+      let heartRateData = '';
+      heartRateSnapshot.forEach((doc) => {
+          const timestamp = doc.id;
+          const value = doc.data().value;
+          heartRateData += `<p>${timestamp}: ${value} BPM</p>`;
+      });
 
-    document.getElementById('heartRateData').innerHTML = heartRateData;
+      document.getElementById('heartRateData').innerHTML = heartRateData;
     }
 
     // Listen for auth state changes
-    let isInitialAuthState = true;
     onAuthStateChanged(auth, (user) => {
-        // Event listener for the Heart Rate dropdown
-        document.getElementById('heartRateContainer').addEventListener('click', function() {
-            if (user) {
-                const userId = user.uid;
-                const dataList = document.getElementById('heartRateData');
-                if (dataList.style.display === 'none' || dataList.style.display === '') {
-                    getHeartRateData(userId);
-                    dataList.style.display = 'block';
-                } else {
-                    dataList.style.display = 'none';
-                }
-            } else {
-                // User is not logged in, redirect to homepage
-                if (!isInitialAuthState) {
-                    window.location.href = 'https://html-starter-six-livid.vercel.app/';
-                }
-            }
-        });
-        isInitialAuthState = false;
+      if (user) {
+          const userId = user.uid;
+
+          document.getElementById('heartRateContainer').addEventListener('click', function() {
+              const dataList = document.getElementById('heartRateData');
+              if (dataList.style.display === 'none' || dataList.style.display === '') {
+                  getHeartRateData(userId);
+                  dataList.style.display = 'block';
+              } else {
+                  dataList.style.display = 'none';
+              }
+          });
+
+          // Similar event listeners for other dropdowns can be added here
+      } else {
+          const dropdownContainers = document.querySelectorAll('.dropdown-container');
+          dropdownContainers.forEach((container) => {
+              container.addEventListener('click', () => {
+                  window.location.href = 'https://html-starter-six-livid.vercel.app/';
+              });
+          });
+      }
     });
   </script>
 </body>
