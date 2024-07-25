@@ -106,7 +106,9 @@
 
   <script>
     function getSavedData(key) {
-      const logs = JSON.parse(localStorage.getItem('healthLogs')) || {};
+      // Fetch data from localStorage and parse it
+      const logs = JSON.parse(localStorage.getItem('dailyLogs')) || {};
+      console.log('Retrieved logs from localStorage:', logs); // Debugging line
       return logs[key] || [];
     }
 
@@ -123,6 +125,8 @@
       });
 
       dataList.innerHTML = content;
+      console.log(`Displaying ${dataKey} data:`); // Debugging line
+      console.log(content); // Debugging line
     }
 
     document.querySelectorAll('.dropdown-container').forEach(container => {
