@@ -83,19 +83,19 @@
           <!-- Heart Rate data will be populated here -->
         </div>
       </div>
-      <div class="dropdown-container">
+      <div class="dropdown-container" id="stepsTakenContainer">
         <h2>Steps Taken</h2>
         <div class="data-list" id="stepsTakenData">
           <!-- Steps Taken data will be populated here -->
         </div>
       </div>
-      <div class="dropdown-container">
+      <div class="dropdown-container" id="moodTrackerContainer">
         <h2>Mood Tracker</h2>
         <div class="data-list" id="moodTrackerData">
           <!-- Mood Tracker data will be populated here -->
         </div>
       </div>
-      <div class="dropdown-container">
+      <div class="dropdown-container" id="sleepPatternContainer">
         <h2>Sleep Pattern Tracker</h2>
         <div class="data-list" id="sleepPatternData">
           <!-- Sleep Pattern data will be populated here -->
@@ -104,68 +104,42 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getFirestore, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAo6ziHFthGBRE3cZd8EC-Ukds8ztyMzFQ",
-      authDomain: "pulsepals-c211c.firebaseapp.com",
-      projectId: "pulsepals-c211c",
-      storageBucket: "pulsepals-c211c.appspot.com",
-      messagingSenderId: "475129408953",
-      appId: "1:475129408953:web:1913c2d4083c1452079a68",
-      measurementId: "G-YPSX5VFFG5"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Function to get and display heart rate data
-    async function getHeartRateData(userId) {
-      const heartRateRef = collection(db, 'users', userId, 'heartRate');
-      const heartRateQuery = query(heartRateRef);
-      const heartRateSnapshot = await getDocs(heartRateQuery);
-
-      let heartRateData = '';
-      heartRateSnapshot.forEach((doc) => {
-          const timestamp = doc.id;
-          const value = doc.data().value;
-          heartRateData += `<p>${timestamp}: ${value} BPM</p>`;
-      });
-
-      document.getElementById('heartRateData').innerHTML = heartRateData;
+  <script>
+    function getSavedData(key) {
+      const logs = JSON.parse(localStorage.getItem('healthLogs')) || {};
+      return logs[key] || [];
     }
 
-    // Listen for auth state changes
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-          const userId = user.uid;
+    function displayData(containerId, dataKey) {
+      const container = document.getElementById(containerId);
+      const data = getSavedData(dataKey);
+      const dataList = document.getElementById(`${containerId}Data`);
+      let content = '';
 
-          document.getElementById('heartRateContainer').addEventListener('click', function() {
-              const dataList = document.getElementById('heartRateData');
-              if (dataList.style.display === 'none' || dataList.style.display === '') {
-                  getHeartRateData(userId);
-                  dataList.style.display = 'block';
-              } else {
-                  dataList.style.display = 'none';
-              }
-          });
+      data.forEach(log => {
+        content += `<p>${log.date}: ${dataKey === 'heartRate' ? log.heartRate + ' BPM' :
+          dataKey === 'stepsTaken' ? log.stepsTaken + ' steps' :
+          dataKey === 'mood' ? log.mood : log.sleepHours + ' hours'}</p>`;
+      });
 
-          // Similar event listeners for other dropdowns can be added here
-      } else {
-          const dropdownContainers = document.querySelectorAll('.dropdown-container');
-          dropdownContainers.forEach((container) => {
-              container.addEventListener('click', () => {
-                  window.location.href = 'https://html-starter-six-livid.vercel.app/';
-              });
-          });
-      }
+      dataList.innerHTML = content;
+    }
+
+    document.querySelectorAll('.dropdown-container').forEach(container => {
+      container.addEventListener('click', function() {
+        const dataList = document.getElementById(`${this.id}Data`);
+        if (dataList.style.display === 'none' || dataList.style.display === '') {
+          const dataKey = this.id.replace('Container', '');
+          displayData(this.id, dataKey);
+          dataList.style.display = 'block';
+        } else {
+          dataList.style.display = 'none';
+        }
+      });
     });
+
+    // Initial hide of data lists
+    document.querySelectorAll('.data-list').forEach(list => list.style.display = 'none');
   </script>
 </body>
 </html>
