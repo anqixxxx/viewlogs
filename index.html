@@ -107,7 +107,7 @@
   <script>
     function getSavedData(key) {
       // Fetch data from localStorage and parse it
-      const logs = JSON.parse(localStorage.getItem('dailyLogs')) || {};
+      const logs = JSON.parse(localStorage.getItem('healthLogs')) || {};
       console.log('Retrieved logs from localStorage:', logs); // Debugging line
       return logs[key] || [];
     }
@@ -137,25 +137,18 @@
 
     document.querySelectorAll('.dropdown-container').forEach(container => {
       container.addEventListener('click', function() {
-        const dataList = document.getElementById(`${this.id}Data`);
+        const dataList = this.querySelector('.data-list');
+        const dataKey = this.id.replace('Container', '');
         
-        if (!dataList) {
-          console.error(`Element with ID ${this.id}Data not found.`);
-          return;
-        }
-
-        if (dataList.style.display === 'none' || dataList.style.display === '') {
-          const dataKey = this.id.replace('Container', '');
+        // Toggle display of data list
+        dataList.style.display = dataList.style.display === 'none' ? 'block' : 'none';
+        
+        // Display data if it's not already shown
+        if (dataList.style.display === 'block') {
           displayData(this.id, dataKey);
-          dataList.style.display = 'block';
-        } else {
-          dataList.style.display = 'none';
         }
       });
     });
-
-    // Initial hide of data lists
-    document.querySelectorAll('.data-list').forEach(list => list.style.display = 'none');
   </script>
 </body>
 </html>
