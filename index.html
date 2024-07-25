@@ -68,7 +68,6 @@
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <div class="header">
@@ -105,29 +104,33 @@
   </div>
 
   <script>
-    function getSavedData(key) {
-      // Fetch data from localStorage and parse it
+    function getSavedData() {
       const logs = JSON.parse(localStorage.getItem('healthLogs')) || {};
       console.log('Retrieved logs from localStorage:', logs); // Debugging line
-      return logs[key] || [];
+      return Object.values(logs); // Return all log entries
     }
 
     function displayData(containerId, dataKey) {
-      const container = document.getElementById(containerId);
-      const dataList = document.getElementById(`${containerId}Data`);
-
+      const dataList = document.getElementById(`${dataKey}Data`);
+      
       if (!dataList) {
-        console.error(`Element with ID ${containerId}Data not found.`);
+        console.error(`Element with ID ${dataKey}Data not found.`);
         return;
       }
 
-      const data = getSavedData(dataKey);
+      const data = getSavedData();
       let content = '';
 
       data.forEach(log => {
-        content += `<p>${log.date}: ${dataKey === 'heartRate' ? log.heartRate + ' BPM' :
-          dataKey === 'stepsTaken' ? log.stepsTaken + ' steps' :
-          dataKey === 'mood' ? log.mood : log.sleepHours + ' hours'}</p>`;
+        if (dataKey === 'heartRate') {
+          content += `<p>${log.date}: ${log.heartRate} BPM</p>`;
+        } else if (dataKey === 'stepsTaken') {
+          content += `<p>${log.date}: ${log.stepsTaken} steps</p>`;
+        } else if (dataKey === 'moodTracker') {
+          content += `<p>${log.date}: ${log.mood}</p>`;
+        } else if (dataKey === 'sleepPattern') {
+          content += `<p>${log.date}: ${log.sleepHours} hours</p>`;
+        }
       });
 
       dataList.innerHTML = content;
@@ -139,16 +142,20 @@
       container.addEventListener('click', function() {
         const dataList = this.querySelector('.data-list');
         const dataKey = this.id.replace('Container', '');
-        
+
         // Toggle display of data list
         dataList.style.display = dataList.style.display === 'none' ? 'block' : 'none';
-        
+
         // Display data if it's not already shown
         if (dataList.style.display === 'block') {
           displayData(this.id, dataKey);
         }
       });
     });
+
+    // Initial hide of data lists
+    document.querySelectorAll('.data-list').forEach(list => list.style.display = 'none');
   </script>
 </body>
 </html>
+
