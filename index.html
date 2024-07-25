@@ -56,9 +56,6 @@
       font-size: 1.5em;
       cursor: pointer;
     }
-    .dropdown-container p {
-      color: #333;
-    }
     .data-list {
       margin-top: 10px;
       display: none;
@@ -78,25 +75,25 @@
     <div class="content">
       <div class="dropdown-container" id="heartRateContainer">
         <h2>Heart Rate</h2>
-        <div class="data-list" id="heartRateData">
+        <div class="data-list" id="heartRateContainerData">
           <!-- Heart Rate data will be populated here -->
         </div>
       </div>
       <div class="dropdown-container" id="stepsTakenContainer">
         <h2>Steps Taken</h2>
-        <div class="data-list" id="stepsTakenData">
+        <div class="data-list" id="stepsTakenContainerData">
           <!-- Steps Taken data will be populated here -->
         </div>
       </div>
       <div class="dropdown-container" id="moodTrackerContainer">
         <h2>Mood Tracker</h2>
-        <div class="data-list" id="moodTrackerData">
+        <div class="data-list" id="moodTrackerContainerData">
           <!-- Mood Tracker data will be populated here -->
         </div>
       </div>
       <div class="dropdown-container" id="sleepPatternContainer">
         <h2>Sleep Pattern Tracker</h2>
-        <div class="data-list" id="sleepPatternData">
+        <div class="data-list" id="sleepPatternContainerData">
           <!-- Sleep Pattern data will be populated here -->
         </div>
       </div>
@@ -104,33 +101,27 @@
   </div>
 
   <script>
-    function getSavedData() {
-      const logs = JSON.parse(localStorage.getItem('healthLogs')) || {};
+    function getSavedData(key) {
+      // Fetch data from localStorage and parse it
+      const logs = JSON.parse(localStorage.getItem('dailyLogs')) || {};
       console.log('Retrieved logs from localStorage:', logs); // Debugging line
-      return Object.values(logs); // Return all log entries
+      return Object.values(logs).filter(log => log.date === key) || [];
     }
 
     function displayData(containerId, dataKey) {
-      const dataList = document.getElementById(`${dataKey}Data`);
-      
+      const dataList = document.getElementById(`${containerId}Data`);
       if (!dataList) {
-        console.error(`Element with ID ${dataKey}Data not found.`);
+        console.error(`Element with ID ${containerId}Data not found.`);
         return;
       }
 
-      const data = getSavedData();
+      const data = getSavedData(dataKey);
       let content = '';
 
       data.forEach(log => {
-        if (dataKey === 'heartRate') {
-          content += `<p>${log.date}: ${log.heartRate} BPM</p>`;
-        } else if (dataKey === 'stepsTaken') {
-          content += `<p>${log.date}: ${log.stepsTaken} steps</p>`;
-        } else if (dataKey === 'moodTracker') {
-          content += `<p>${log.date}: ${log.mood}</p>`;
-        } else if (dataKey === 'sleepPattern') {
-          content += `<p>${log.date}: ${log.sleepHours} hours</p>`;
-        }
+        content += `<p>${log.date}: ${dataKey === 'heartRate' ? log.heartRate + ' BPM' :
+          dataKey === 'stepsTaken' ? log.stepsTaken + ' steps' :
+          dataKey === 'moodTracker' ? log.mood : log.sleepHours + ' hours'}</p>`;
       });
 
       dataList.innerHTML = content;
@@ -140,15 +131,19 @@
 
     document.querySelectorAll('.dropdown-container').forEach(container => {
       container.addEventListener('click', function() {
-        const dataList = this.querySelector('.data-list');
-        const dataKey = this.id.replace('Container', '');
+        const dataList = document.getElementById(`${this.id}Data`);
+        
+        if (!dataList) {
+          console.error(`Element with ID ${this.id}Data not found.`);
+          return;
+        }
 
-        // Toggle display of data list
-        dataList.style.display = dataList.style.display === 'none' ? 'block' : 'none';
-
-        // Display data if it's not already shown
-        if (dataList.style.display === 'block') {
+        if (dataList.style.display === 'none' || dataList.style.display === '') {
+          const dataKey = this.id.replace('Container', '');
           displayData(this.id, dataKey);
+          dataList.style.display = 'block';
+        } else {
+          dataList.style.display = 'none';
         }
       });
     });
@@ -158,4 +153,3 @@
   </script>
 </body>
 </html>
-
