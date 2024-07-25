@@ -114,8 +114,14 @@
 
     function displayData(containerId, dataKey) {
       const container = document.getElementById(containerId);
-      const data = getSavedData(dataKey);
       const dataList = document.getElementById(`${containerId}Data`);
+
+      if (!dataList) {
+        console.error(`Element with ID ${containerId}Data not found.`);
+        return;
+      }
+
+      const data = getSavedData(dataKey);
       let content = '';
 
       data.forEach(log => {
@@ -132,6 +138,12 @@
     document.querySelectorAll('.dropdown-container').forEach(container => {
       container.addEventListener('click', function() {
         const dataList = document.getElementById(`${this.id}Data`);
+        
+        if (!dataList) {
+          console.error(`Element with ID ${this.id}Data not found.`);
+          return;
+        }
+
         if (dataList.style.display === 'none' || dataList.style.display === '') {
           const dataKey = this.id.replace('Container', '');
           displayData(this.id, dataKey);
